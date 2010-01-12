@@ -171,6 +171,7 @@ static NSString *kSlideAnimationId = @"KalSwitchMonths";
   }
   
   // trigger the slide animation
+  BOOL animationsEnabled = [UIView areAnimationsEnabled];
   [UIView beginAnimations:kSlideAnimationId context:NULL]; {
     [UIView setAnimationsEnabled:direction!=SLIDE_NONE];
     [UIView setAnimationDuration:0.5];
@@ -184,6 +185,9 @@ static NSString *kSlideAnimationId = @"KalSwitchMonths";
     
     [self swapMonthViews];
   } [UIView commitAnimations];
+	
+  // restore the original animation enablement 
+  [UIView setAnimationsEnabled:animationsEnabled];
 }
 
 - (void)slide:(int)direction
