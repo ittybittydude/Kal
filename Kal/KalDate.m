@@ -6,14 +6,13 @@
 #import "KalDate.h"
 #import "KalPrivate.h"
 
-static KalDate *today;
+static NSTimeZone *presentationTimeZone;
 
 @implementation KalDate
 
 + (void)initialize
 {
-  today = [[KalDate dateFromNSDate:[NSDate date]] retain];
-  // TODO set a timer for midnight to recache this value
+	presentationTimeZone = nil;
 }
 
 + (KalDate *)dateForDay:(unsigned int)day month:(unsigned int)month year:(unsigned int)year
@@ -25,6 +24,27 @@ static KalDate *today;
 {
   NSDateComponents *parts = [date cc_componentsForMonthDayAndYear];
   return [KalDate dateForDay:[parts day] month:[parts month] year:[parts year]];
+}
+
++ (void)setPresentationTimeZone:(NSTimeZone *)timeZone {
+	presentationTimeZone = timeZone;
+}
+
++ (KalDate *)today {
+	// Calculating 'today' dynamically means the highlighted cell in the calendar updates appropriately when 
+	// the day rolls over.
+	NSDate *now = nil;
+	if (presentationTimeZone != nil)  {
+		// Uses the presentation timezone to derive the date/time representing 'now'
+		// This supports scenarios where the application's default TimeZone has been changed to GMT, but 
+		// you want the calendar to present 'today' in a meaningful way to he user (most likely by setting
+		// presentationTimeZone to [NSTimeZone systemTimeZone]).
+		now = [NSDate dateWithTimeIntervalSinceNow:[presentationTimeZone secondsFromGMT]];
+	} else {
+		now = [NSDate date]; // Uses the default timezone to derive the date/time representing 'now'
+	}
+	
+	return [[KalDate dateFromNSDate:now] retain];
 }
 
 - (id)initForDay:(unsigned int)day month:(unsigned int)month year:(unsigned int)year
@@ -50,7 +70,7 @@ static KalDate *today;
   return [[NSCalendar currentCalendar] dateFromComponents:c];
 }
 
-- (BOOL)isToday { return [self isEqual:today]; }
+- (BOOL)isToday { return [self isEqual:[KalDate today]]; }
 
 - (NSComparisonResult)compare:(KalDate *)otherDate
 {

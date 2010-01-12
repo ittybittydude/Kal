@@ -14,6 +14,7 @@
 
 + (KalDate *)dateForDay:(unsigned int)day month:(unsigned int)month year:(unsigned int)year;
 + (KalDate *)dateFromNSDate:(NSDate *)date;
++ (void)setPresentationTimeZone:(NSTimeZone *)timeZone;
 
 - (id)initForDay:(unsigned int)day month:(unsigned int)month year:(unsigned int)year;
 - (unsigned int)day;
