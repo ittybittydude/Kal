@@ -17,6 +17,16 @@
   return [[NSCalendar currentCalendar] dateFromComponents:parts];
 }
 
+- (NSDate *)cc_dateByMovingToMidDay
+{
+	unsigned int flags = NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit | NSHourCalendarUnit | NSMinuteCalendarUnit | NSSecondCalendarUnit;
+	NSDateComponents* parts = [[NSCalendar currentCalendar] components:flags fromDate:self];
+	[parts setHour:12];
+	[parts setMinute:0];
+	[parts setSecond:0];
+	return [[NSCalendar currentCalendar] dateFromComponents:parts];
+}
+
 - (NSDate *)cc_dateByMovingToEndOfDay
 {
   unsigned int flags = NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit | NSHourCalendarUnit | NSMinuteCalendarUnit | NSSecondCalendarUnit;
