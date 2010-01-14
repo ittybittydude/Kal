@@ -9,7 +9,7 @@
 // their calculations.
 
 - (NSDate *)cc_dateByMovingToBeginningOfDay;
-- (NSDate *)cc_dateByMovingToMidDay;
+- (NSDate *)cc_dateByMovingToMidday;
 - (NSDate *)cc_dateByMovingToEndOfDay;
 - (NSDate *)cc_dateByMovingToFirstDayOfTheMonth;
 - (NSDate *)cc_dateByMovingToFirstDayOfThePreviousMonth;

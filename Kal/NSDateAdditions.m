@@ -17,7 +17,7 @@
   return [[NSCalendar currentCalendar] dateFromComponents:parts];
 }
 
-- (NSDate *)cc_dateByMovingToMidDay
+- (NSDate *)cc_dateByMovingToMidday
 {
 	unsigned int flags = NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit | NSHourCalendarUnit | NSMinuteCalendarUnit | NSSecondCalendarUnit;
 	NSDateComponents* parts = [[NSCalendar currentCalendar] components:flags fromDate:self];
