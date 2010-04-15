@@ -34,20 +34,43 @@ void mach_absolute_difference(uint64_t end, uint64_t start, struct timespec *tp)
 
 @implementation KalViewController
 
-- (id)initWithDataSource:(id<KalDataSource>)source
+@synthesize dataSource, delegate;
+
+- (id)initWithSelectedDate:(NSDate *)selectedDate
 {
   if ((self = [super init])) {
-    dataSource = [source retain];
+    logic = [[KalLogic alloc] initForDate:selectedDate];
+    initialSelectedDate = [selectedDate retain];
   }
   return self;
-}  
+}
 
 - (id)init
 {
-  return [self initWithDataSource:[SimpleKalDataSource dataSource]];
+  return [self initWithSelectedDate:[NSDate date]];
 }
 
 - (KalView*)calendarView { return (KalView*)self.view; }
+
+- (void)setDataSource:(id<KalDataSource>)aDataSource
+{
+  if (dataSource != aDataSource) {
+    [dataSource release];
+    [aDataSource retain];
+    dataSource = aDataSource;
+    tableView.dataSource = dataSource;
+  }
+}
+
+- (void)setDelegate:(id<UITableViewDelegate>)aDelegate
+{
+  if (delegate != aDelegate) {
+    [delegate release];
+    [aDelegate retain];
+    delegate = aDelegate;
+    tableView.delegate = delegate;
+  }
+}
 
 - (void)clearTable
 {
@@ -55,20 +78,9 @@ void mach_absolute_difference(uint64_t end, uint64_t start, struct timespec *tp)
   [tableView reloadData];
 }
 
-- (void)fetchDataForCurrentMonth
+- (void)reloadData
 {
   [dataSource presentingDatesFrom:logic.fromDate to:logic.toDate delegate:self];
-}
-
-- (UITableView *)tableView
-{
-  UITableView *table = [[self calendarView] tableView];
-  if (!table) {
-    [self loadView];
-    table = [[self calendarView] tableView];
-  }
-  
-  return table;
 }
 
 // -----------------------------------------
@@ -89,7 +101,7 @@ void mach_absolute_difference(uint64_t end, uint64_t start, struct timespec *tp)
   [self clearTable];
   [logic retreatToPreviousMonth];
   [[self calendarView] slideDown];
-  [self fetchDataForCurrentMonth];
+  [self reloadData];
 }
 
 - (void)showFollowingMonth
@@ -97,7 +109,7 @@ void mach_absolute_difference(uint64_t end, uint64_t start, struct timespec *tp)
   [self clearTable];
   [logic advanceToFollowingMonth];
   [[self calendarView] slideUp];
-  [self fetchDataForCurrentMonth];
+  [self reloadData];
 }
 
 // -----------------------------------------
@@ -117,12 +129,12 @@ void mach_absolute_difference(uint64_t end, uint64_t start, struct timespec *tp)
 // ---------------------------------------
 #pragma mark -
 
-- (void)showAndSelectToday
+- (void)showAndSelectDate:(NSDate *)date
 {
   if ([[self calendarView] isSliding])
     return;
   
-  [logic moveToTodaysMonth];
+  [logic moveToMonthForDate:date];
   
 #if PROFILER
   uint64_t start, end;
@@ -138,8 +150,8 @@ void mach_absolute_difference(uint64_t end, uint64_t start, struct timespec *tp)
   printf("[[self calendarView] jumpToSelectedMonth]: %.1f ms\n", tp.tv_nsec / 1e6);
 #endif
   
-  [[self calendarView] selectTodayIfVisible];
-  [self fetchDataForCurrentMonth];
+  [[self calendarView] selectDate:[KalDate dateFromNSDate:date]];
+  [self reloadData];
 }
 
 // -----------------------------------------------------------------------------------
@@ -148,11 +160,16 @@ void mach_absolute_difference(uint64_t end, uint64_t start, struct timespec *tp)
 - (void)loadView
 {
   self.title = @"Calendar";
-  logic = [[KalLogic alloc] init];
-  self.view = [[[KalView alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame] delegate:self logic:logic] autorelease];
-  tableView = [[[self calendarView] tableView] retain];
+  
+  KalView *kalView = [[KalView alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame] delegate:self logic:logic];
+  self.view = kalView;
+  tableView = kalView.tableView;
   tableView.dataSource = dataSource;
-  [self fetchDataForCurrentMonth];
+  tableView.delegate = delegate;
+  [tableView retain];
+  [kalView selectDate:[KalDate dateFromNSDate:initialSelectedDate]];
+  [kalView release];
+  [self reloadData];
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -171,9 +188,9 @@ void mach_absolute_difference(uint64_t end, uint64_t start, struct timespec *tp)
 
 - (void)dealloc
 {
+  [initialSelectedDate release];
   [logic release];
   [tableView release];
-  [dataSource release];
   [super dealloc];
 }
 

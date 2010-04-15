@@ -187,6 +187,7 @@ static const CGFloat kMonthLabelHeight = 17.f;
     frame.size.height = tableView.superview.height - gridBottom;
     tableView.frame = frame;
     shadowView.top = gridBottom;
+    
   } else if ([keyPath isEqualToString:@"selectedMonthNameAndYear"]) {
     [self setHeaderTitleText:[change objectForKey:NSKeyValueChangeNewKey]];
     
@@ -204,7 +205,7 @@ static const CGFloat kMonthLabelHeight = 17.f;
 
 - (void)jumpToSelectedMonth { [gridView jumpToSelectedMonth]; }
 
-- (void)selectTodayIfVisible { [gridView selectTodayIfVisible]; }
+- (void)selectDate:(KalDate *)date { [gridView selectDate:date]; }
 
 - (BOOL)isSliding { return gridView.transitioning; }
 

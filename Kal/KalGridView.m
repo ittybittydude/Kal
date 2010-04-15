@@ -22,7 +22,8 @@ const CGSize kTileSize = { 46.f, 44.f };
 static NSString *kSlideAnimationId = @"KalSwitchMonths";
 
 @interface KalGridView ()
-- (void)selectTodayIfVisible;
+@property (nonatomic, retain) KalTileView *selectedTile;
+@property (nonatomic, retain) KalTileView *highlightedTile;
 - (void)swapMonthViews;
 @end
 
@@ -53,9 +54,8 @@ static NSString *kSlideAnimationId = @"KalSwitchMonths";
     backMonthView.hidden = YES;
     [self addSubview:backMonthView];
     [self addSubview:frontMonthView];
-    
+
     [self jumpToSelectedMonth];
-    [self selectTodayIfVisible];
   }
   return self;
 }
@@ -171,7 +171,6 @@ static NSString *kSlideAnimationId = @"KalSwitchMonths";
   }
   
   // trigger the slide animation
-  BOOL animationsEnabled = [UIView areAnimationsEnabled];
   [UIView beginAnimations:kSlideAnimationId context:NULL]; {
     [UIView setAnimationsEnabled:direction!=SLIDE_NONE];
     [UIView setAnimationDuration:0.5];
@@ -185,9 +184,7 @@ static NSString *kSlideAnimationId = @"KalSwitchMonths";
     
     [self swapMonthViews];
   } [UIView commitAnimations];
-	
-  // restore the original animation enablement 
-  [UIView setAnimationsEnabled:animationsEnabled];
+ [UIView setAnimationsEnabled:YES];
 }
 
 - (void)slide:(int)direction
@@ -204,7 +201,7 @@ static NSString *kSlideAnimationId = @"KalSwitchMonths";
   // that is sliding offscreen.
   
   BOOL keepOneRow = (direction == SLIDE_UP && [logic.daysInFinalWeekOfPreviousMonth count] > 0)
-                    || (direction == SLIDE_DOWN  && [logic.daysInFirstWeekOfFollowingMonth count] > 0);
+                 || (direction == SLIDE_DOWN && [logic.daysInFirstWeekOfFollowingMonth count] > 0);
   
   [self swapMonthsAndSlide:direction keepOneRow:keepOneRow];
   
@@ -222,18 +219,16 @@ static NSString *kSlideAnimationId = @"KalSwitchMonths";
 
 #pragma mark -
 
-- (void)selectTodayIfVisible
+- (void)selectDate:(KalDate *)date
 {
-  KalTileView *todayTile = [frontMonthView todaysTileIfVisible];
-  if (todayTile)
-    self.selectedTile = todayTile;
+  self.selectedTile = [frontMonthView tileForDate:date];
 }
 
 - (void)swapMonthViews
 {
   KalMonthView *tmp = backMonthView;
-	backMonthView = frontMonthView;
-	frontMonthView = tmp;
+  backMonthView = frontMonthView;
+  frontMonthView = tmp;
   [self exchangeSubviewAtIndex:[self.subviews indexOfObject:frontMonthView] withSubviewAtIndex:[self.subviews indexOfObject:backMonthView]];
 }
 
